@@ -8,18 +8,19 @@ datasource db {
 }
 
 model User {
-    id       Int    @id @default(autoincrement())
-    email    String @unique
-    username String
-    password String // need to hash!
-    role     Role   @default(IMMIGRANT)
-    city     String
-    mentor       MentorExtension? // TODO need relation to Extrension?
+    id           Int                    @id @default(autoincrement())
+    email        String                 @unique
+    username     String
+    password     String // need to hash!
+    role         Role                   @default(IMMIGRANT)
+    city         String
+    mentor       MentorExtension?
     immigrant    ImmigrantExtension?
     organisation OrganisationExtension?
     // relations
-    events    Event[]
-    locations Location[]
+    events       Event[]
+    Chat         Chat[]                 @relation(references: [id])
+    Message      Message[]
 }
 
 enum Role {
@@ -29,92 +30,96 @@ enum Role {
 }
 
 model MentorExtension {
-    id           Int      @id @default(autoincrement())
-    userId       Int?     @unique
-    name         String?
-    birthdate    DateTime // not optional because mentor need to provide information
-    bio          String // not optional because mentor need to provide information
-    arrival      DateTime // since when in germany
-    professional Boolean  @default(false)
+    id              Int                    @id @default(autoincrement())
+    userId          Int?                   @unique
+    name            String?
+    birthdate       DateTime // not optional because mentor need to provide information
+    bio             String // not optional because mentor need to provide information
+    arrival         DateTime // since when in germany
+    professional    Boolean                @default(false)
     certifiedSkills CertifiedSkillWrapper?
     skills          SkillWrapper?
     // relations
-    User User? @relation(fields: [userId], references: [id])
+    User            User?                  @relation(fields: [userId], references: [id])
 }
 
 model ImmigrantExtension {
     id        Int       @id @default(autoincrement())
-    userId    Int?      @unique
     name      String?
     birthdate DateTime?
     bio       String?
     // relations
-    User User? @relation(fields: [userId], references: [id])
+    User      User?     @relation(fields: [userId], references: [id])
+    userId    Int?      @unique
 }
 
 model OrganisationExtension {
-    id              Int     @id @default(autoincrement())
-    userId          Int?    @unique
-    orgaDescription String?
+    id              Int        @id @default(autoincrement())
+    orgaDescription String?    @db.Text
     // relations
-    User User? @relation(fields: [userId], references: [id])
+    User            User?      @relation(fields: [userId], references: [id])
+    userId          Int?       @unique
+    locations       Location[]
 }
 
 model CertifiedSkillWrapper {
-    id       Int @id @default(autoincrement())
-    mentorId Int @unique
+    id        Int             @id @default(autoincrement())
+    mentorId  Int             @unique
     // skills
-    AUTHORITY Boolean @default(false)
-    LIVING    Boolean @default(false)
-    LEGAL     Boolean @default(false)
-    HEALTH    Boolean @default(false)
-    DRIVING   Boolean @default(false)
-    EDUCATION Boolean @default(false)
-    WORKING   Boolean @default(false)
-    mentor MentorExtension @relation(fields: [mentorId], references: [id])
+    AUTHORITY Boolean         @default(false)
+    LIVING    Boolean         @default(false)
+    LEGAL     Boolean         @default(false)
+    HEALTH    Boolean         @default(false)
+    DRIVING   Boolean         @default(false)
+    EDUCATION Boolean         @default(false)
+    WORKING   Boolean         @default(false)
+    mentor    MentorExtension @relation(fields: [mentorId], references: [id])
 }
 
 model SkillWrapper {
-    id       Int @id @default(autoincrement())
-    mentorId Int @unique
+    id               Int             @id @default(autoincrement())
+    mentorId         Int             @unique
     // skills
-    LANGUAGE         Boolean @default(false)
-    PUBLIC_TRANSPORT Boolean @default(false)
-    CULTURE          Boolean @default(false)
-    CULINARY         Boolean @default(false)
-    SPARE_TIME       Boolean @default(false)
-    RELIGION         Boolean @default(false)
-    mentor MentorExtension @relation(fields: [mentorId], references: [id])
+    LANGUAGE         Boolean         @default(false)
+    PUBLIC_TRANSPORT Boolean         @default(false)
+    CULTURE          Boolean         @default(false)
+    CULINARY         Boolean         @default(false)
+    SPARE_TIME       Boolean         @default(false)
+    RELIGION         Boolean         @default(false)
+    mentor           MentorExtension @relation(fields: [mentorId], references: [id])
 }
 
 model Event {
     id          Int       @id @default(autoincrement())
-    organizerId Int
-    location    Location? @relation(fields: [locationId], references: [id])
+    name        String
     temporary   Boolean   @default(true)
-    description String?
+    description String?   @db.Text
     start       DateTime?
     end         DateTime?
     // relations
-    organizer  User @relation(fields: [organizerId], references: [id])
-    locationId Int?
+    organizer   User      @relation(fields: [organizerId], references: [id])
+    organizerId Int
+    location    Location? @relation(fields: [locationId], references: [id])
+    locationId  Int?
 }
 
 model Location {
-    id         Int     @id @default(autoincrement())
-    street     String
-    number     Int?
-    supplement String?
-    city       String
-    zip        Int
-    what3Words  String?
-    coordinates Coordinates? @relation(fields: [coordinatesId], references: [id])
-    description   String?
-    note          String?
-    User          User?   @relation(fields: [userId], references: [id])
-    userId        Int?
-    Event         Event[]
-    coordinatesId Int?
+    id                      Int                    @id @default(autoincrement())
+    street                  String
+    number                  Int?
+    supplement              String?
+    city                    String
+    zip                     Int
+    description             String?                @db.Text
+    note                    String?
+    // relations
+    Event                   Event[]
+    coordinates             Coordinates?           @relation(fields: [coordinatesId], references: [id])
+    coordinatesId           Int?
+    OrganisationExtension   OrganisationExtension? @relation(fields: [organisationExtensionId], references: [id])
+    organisationExtensionId Int?
+    what3Words              What3Words             @relation(fields: [what3WordsId], references: [id])
+    what3WordsId            Int
 }
 
 model Coordinates {
@@ -122,4 +127,26 @@ model Coordinates {
     latitude  Float
     longitude Float
     Location  Location[]
+}
+
+model What3Words {
+    id       Int        @id @default(autoincrement())
+    word1    String
+    word2    String
+    word3    String
+    Location Location[]
+}
+
+model Chat {
+    id       Int       @id @default(autoincrement())
+    user     User[]
+    messages Message[]
+}
+
+model Message {
+    id     Int   @id @default(autoincrement())
+    user   User  @relation(fields: [userId], references: [id])
+    userId Int
+    Chat   Chat? @relation(fields: [chatId], references: [id])
+    chatId Int?
 }

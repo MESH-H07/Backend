@@ -28,10 +28,10 @@ CREATE TABLE `MentorExtension` (
 -- CreateTable
 CREATE TABLE `ImmigrantExtension` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `userId` INTEGER NULL,
     `name` VARCHAR(191) NULL,
     `birthdate` DATETIME(3) NULL,
     `bio` VARCHAR(191) NULL,
+    `userId` INTEGER NULL,
 
     UNIQUE INDEX `ImmigrantExtension_userId_key`(`userId`),
     PRIMARY KEY (`id`)
@@ -40,8 +40,8 @@ CREATE TABLE `ImmigrantExtension` (
 -- CreateTable
 CREATE TABLE `OrganisationExtension` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `orgaDescription` TEXT NULL,
     `userId` INTEGER NULL,
-    `orgaDescription` VARCHAR(191) NULL,
 
     UNIQUE INDEX `OrganisationExtension_userId_key`(`userId`),
     PRIMARY KEY (`id`)
@@ -81,11 +81,12 @@ CREATE TABLE `SkillWrapper` (
 -- CreateTable
 CREATE TABLE `Event` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `organizerId` INTEGER NOT NULL,
+    `name` VARCHAR(191) NOT NULL,
     `temporary` BOOLEAN NOT NULL DEFAULT true,
-    `description` VARCHAR(191) NULL,
+    `description` TEXT NULL,
     `start` DATETIME(3) NULL,
     `end` DATETIME(3) NULL,
+    `organizerId` INTEGER NOT NULL,
     `locationId` INTEGER NULL,
 
     PRIMARY KEY (`id`)
@@ -99,11 +100,11 @@ CREATE TABLE `Location` (
     `supplement` VARCHAR(191) NULL,
     `city` VARCHAR(191) NOT NULL,
     `zip` INTEGER NOT NULL,
-    `what3Words` VARCHAR(191) NULL,
-    `description` VARCHAR(191) NULL,
+    `description` TEXT NULL,
     `note` VARCHAR(191) NULL,
-    `userId` INTEGER NULL,
     `coordinatesId` INTEGER NULL,
+    `organisationExtensionId` INTEGER NULL,
+    `what3WordsId` INTEGER NOT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -115,6 +116,32 @@ CREATE TABLE `Coordinates` (
     `longitude` DOUBLE NOT NULL,
 
     PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `What3Words` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `word1` VARCHAR(191) NOT NULL,
+    `word2` VARCHAR(191) NOT NULL,
+    `word3` VARCHAR(191) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Chat` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `_ChatToUser` (
+    `A` INTEGER NOT NULL,
+    `B` INTEGER NOT NULL,
+
+    UNIQUE INDEX `_ChatToUser_AB_unique`(`A`, `B`),
+    INDEX `_ChatToUser_B_index`(`B`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
@@ -139,7 +166,16 @@ ALTER TABLE `Event` ADD CONSTRAINT `Event_organizerId_fkey` FOREIGN KEY (`organi
 ALTER TABLE `Event` ADD CONSTRAINT `Event_locationId_fkey` FOREIGN KEY (`locationId`) REFERENCES `Location`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Location` ADD CONSTRAINT `Location_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `Location` ADD CONSTRAINT `Location_organisationExtensionId_fkey` FOREIGN KEY (`organisationExtensionId`) REFERENCES `OrganisationExtension`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Location` ADD CONSTRAINT `Location_coordinatesId_fkey` FOREIGN KEY (`coordinatesId`) REFERENCES `Coordinates`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Location` ADD CONSTRAINT `Location_what3WordsId_fkey` FOREIGN KEY (`what3WordsId`) REFERENCES `What3Words`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `_ChatToUser` ADD FOREIGN KEY (`A`) REFERENCES `Chat`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `_ChatToUser` ADD FOREIGN KEY (`B`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
