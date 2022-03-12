@@ -10,7 +10,7 @@ datasource db {
 model User {
     id           Int                    @id @default(autoincrement())
     email        String                 @unique
-    username     String
+    username     String                 @unique
     password     String // need to hash!
     role         Role                   @default(IMMIGRANT)
     city         String
@@ -26,7 +26,7 @@ model User {
 enum Role {
     MENTOR
     IMMIGRANT
-    ORGANISATIOn
+    ORGANISATION
 }
 
 model MentorExtension {
@@ -54,26 +54,27 @@ model ImmigrantExtension {
 }
 
 model OrganisationExtension {
-    id              Int        @id @default(autoincrement())
-    orgaDescription String?    @db.Text
+    id          Int        @id @default(autoincrement())
+    name        String
+    description String     @db.Text
     // relations
-    User            User?      @relation(fields: [userId], references: [id])
-    userId          Int?       @unique
-    locations       Location[]
+    User        User?      @relation(fields: [userId], references: [id])
+    userId      Int?       @unique
+    locations   Location[]
 }
 
 model CertifiedSkillWrapper {
-    id        Int             @id @default(autoincrement())
-    mentorId  Int             @unique
+    id          Int             @id @default(autoincrement())
+    mentorId    Int             @unique
     // skills
-    AUTHORITY Boolean         @default(false)
-    LIVING    Boolean         @default(false)
-    LEGAL     Boolean         @default(false)
-    HEALTH    Boolean         @default(false)
-    DRIVING   Boolean         @default(false)
-    EDUCATION Boolean         @default(false)
-    WORKING   Boolean         @default(false)
-    mentor    MentorExtension @relation(fields: [mentorId], references: [id])
+    BUREAUCRACY Boolean         @default(false)
+    LIVING      Boolean         @default(false)
+    LEGAL       Boolean         @default(false)
+    HEALTH      Boolean         @default(false)
+    DRIVING     Boolean         @default(false)
+    EDUCATION   Boolean         @default(false)
+    WORKING     Boolean         @default(false)
+    mentor      MentorExtension @relation(fields: [mentorId], references: [id])
 }
 
 model SkillWrapper {
@@ -118,8 +119,6 @@ model Location {
     coordinatesId           Int?
     OrganisationExtension   OrganisationExtension? @relation(fields: [organisationExtensionId], references: [id])
     organisationExtensionId Int?
-    what3Words              What3Words             @relation(fields: [what3WordsId], references: [id])
-    what3WordsId            Int
 }
 
 model Coordinates {
@@ -127,14 +126,6 @@ model Coordinates {
     latitude  Float
     longitude Float
     Location  Location[]
-}
-
-model What3Words {
-    id       Int        @id @default(autoincrement())
-    word1    String
-    word2    String
-    word3    String
-    Location Location[]
 }
 
 model Chat {
