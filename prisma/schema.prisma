@@ -1,0 +1,125 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "mysql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+    id       Int    @id @default(autoincrement())
+    email    String @unique
+    username String
+    password String // need to hash!
+    role     Role   @default(IMMIGRANT)
+    city     String
+    mentor       MentorExtension? // TODO need relation to Extrension?
+    immigrant    ImmigrantExtension?
+    organisation OrganisationExtension?
+    // relations
+    events    Event[]
+    locations Location[]
+}
+
+enum Role {
+    MENTOR
+    IMMIGRANT
+    ORGANISATIOn
+}
+
+model MentorExtension {
+    id           Int      @id @default(autoincrement())
+    userId       Int?     @unique
+    name         String?
+    birthdate    DateTime // not optional because mentor need to provide information
+    bio          String // not optional because mentor need to provide information
+    arrival      DateTime // since when in germany
+    professional Boolean  @default(false)
+    certifiedSkills CertifiedSkillWrapper?
+    skills          SkillWrapper?
+    // relations
+    User User? @relation(fields: [userId], references: [id])
+}
+
+model ImmigrantExtension {
+    id        Int       @id @default(autoincrement())
+    userId    Int?      @unique
+    name      String?
+    birthdate DateTime?
+    bio       String?
+    // relations
+    User User? @relation(fields: [userId], references: [id])
+}
+
+model OrganisationExtension {
+    id              Int     @id @default(autoincrement())
+    userId          Int?    @unique
+    orgaDescription String?
+    // relations
+    User User? @relation(fields: [userId], references: [id])
+}
+
+model CertifiedSkillWrapper {
+    id       Int @id @default(autoincrement())
+    mentorId Int @unique
+    // skills
+    AUTHORITY Boolean @default(false)
+    LIVING    Boolean @default(false)
+    LEGAL     Boolean @default(false)
+    HEALTH    Boolean @default(false)
+    DRIVING   Boolean @default(false)
+    EDUCATION Boolean @default(false)
+    WORKING   Boolean @default(false)
+    mentor MentorExtension @relation(fields: [mentorId], references: [id])
+}
+
+model SkillWrapper {
+    id       Int @id @default(autoincrement())
+    mentorId Int @unique
+    // skills
+    LANGUAGE         Boolean @default(false)
+    PUBLIC_TRANSPORT Boolean @default(false)
+    CULTURE          Boolean @default(false)
+    CULINARY         Boolean @default(false)
+    SPARE_TIME       Boolean @default(false)
+    RELIGION         Boolean @default(false)
+    mentor MentorExtension @relation(fields: [mentorId], references: [id])
+}
+
+model Event {
+    id          Int       @id @default(autoincrement())
+    organizerId Int
+    location    Location? @relation(fields: [locationId], references: [id])
+    temporary   Boolean   @default(true)
+    description String?
+    start       DateTime?
+    end         DateTime?
+    // relations
+    organizer  User @relation(fields: [organizerId], references: [id])
+    locationId Int?
+}
+
+model Location {
+    id         Int     @id @default(autoincrement())
+    street     String
+    number     Int?
+    supplement String?
+    city       String
+    zip        Int
+    what3Words  String?
+    coordinates Coordinates? @relation(fields: [coordinatesId], references: [id])
+    description   String?
+    note          String?
+    User          User?   @relation(fields: [userId], references: [id])
+    userId        Int?
+    Event         Event[]
+    coordinatesId Int?
+}
+
+model Coordinates {
+    id        Int        @id @default(autoincrement())
+    latitude  Float
+    longitude Float
+    Location  Location[]
+}
