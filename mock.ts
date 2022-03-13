@@ -153,15 +153,15 @@ async function eventCreate() {
 async function chatCreate() {
     await prisma.chat.create({
         data: {
-            user: {
-                connect: [{ id: 1 }, { id: 2 }]
-            },
-            messages: {
-                create:
-                    [
-                        { userId: 1, text: "message" },
-                    ]
-            }
+            userId1: 1,
+            userId2: 2,
+        },
+    })
+
+    await prisma.chat.create({
+        data: {
+            userId1: 2,
+            userId2: 1,
         },
     })
 }

@@ -23,9 +23,14 @@ export async function getChatFromUser(userid: number) {
             id: userid
         },
         include: {
-            chat: {
+            Chat1: {
                 include: {
-                    messages: true,
+                    user2: true,
+                }
+            },
+            Chat2: {
+                include: {
+                    user1: true,
                 }
             },
         },
