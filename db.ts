@@ -1,38 +1,62 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
-export async function initMocUp() {
-    await prisma.user.create({
-        data: {
-            email: "Horst",
-            username: "Horsi",
-            password: "1234",
-            city: "Berlin",
-            events: {
-                create: [
-                    { name: "TestEvent" },
-                ],
+export async function getEvents() {
+    return await prisma.event.findMany({
+        include: {
+            organizer: true,
+            location: true,
+        }
+    });
+}
+export async function getMentors() {
+    return await prisma.mentorExtension.findMany({
+        include: {
+            certifiedSkills: true,
+            skills: true,
+        }
+    });
+}
+export async function getChatFromUser(userid: number) {
+    return await prisma.user.findMany({
+        where: {
+            id: userid
+        },
+        include: {
+            chat: {
+                include: {
+                    messages: true,
+                }
+            },
+        },
+    })
+}
+export async function getInfo() { }
+
+export async function getLocationById(locationid: number) {
+    console.log(locationid)
+    return await prisma.location.findFirst({
+        where: {
+            id: locationid,
+        },
+    })
+}
+
+export async function getLocationsOfOrgas() {
+    return await prisma.location.findMany({
+        where: {
+            NOT: {
+                organisationExtensionId: null,
             },
         },
         include: {
-            events: true,
+            OrganisationExtension: {
+                include: {
+                    User: true,
+                }
+            }
         },
     })
-    const allEvents = await prisma.event.findMany({})
-    console.dir(allEvents, { depth: null })
-}
-
-export async function getEvents() { return await prisma.event.findMany(); }
-
-export async function getMentors() {
-    return await prisma.mentorExtension.findMany(); // TODO
-}
-export async function getChats() {
-    // TODO
-}
-
-export async function getInfo() {
-    // TODO
 }
 
 export async function createMentor(user: any) {
@@ -46,6 +70,7 @@ export async function createMentor(user: any) {
             mentor: {
                 create: {
                     name: user.name,
+                    description: user.description,
                     birthdate: user.birthdate,
                     bio: user.bio,
                     arrival: user.arrival,
@@ -122,3 +147,29 @@ function checkFieldsLocation(address: any): any {
 }
 
 // ----- end create user ----- //
+
+// ----- event ----- //
+export async function createEvent(event: any, userId: any) {
+    await prisma.event.create({
+        data: {
+            name: event.name,
+            temporary: event.temporary,
+            description: event.description,
+            start: event.start,
+            end: event.end,
+            organizerId: userId,
+            location: {
+                create: checkFieldsLocation(event.address)
+            },
+        },
+    })
+}
+
+export async function updateEvent(event: any) {
+
+}
+
+export async function deleteEvent(event: any) {
+
+}
+// ----- end event ----- // 

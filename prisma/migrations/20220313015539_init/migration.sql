@@ -4,10 +4,11 @@ CREATE TABLE `User` (
     `email` VARCHAR(191) NOT NULL,
     `username` VARCHAR(191) NOT NULL,
     `password` VARCHAR(191) NOT NULL,
-    `role` ENUM('MENTOR', 'IMMIGRANT', 'ORGANISATIOn') NOT NULL DEFAULT 'IMMIGRANT',
+    `role` ENUM('MENTOR', 'IMMIGRANT', 'ORGANISATION') NOT NULL DEFAULT 'IMMIGRANT',
     `city` VARCHAR(191) NOT NULL,
 
     UNIQUE INDEX `User_email_key`(`email`),
+    UNIQUE INDEX `User_username_key`(`username`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -15,10 +16,11 @@ CREATE TABLE `User` (
 CREATE TABLE `MentorExtension` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `userId` INTEGER NULL,
-    `name` VARCHAR(191) NULL,
-    `birthdate` DATETIME(3) NOT NULL,
+    `name` VARCHAR(191) NOT NULL,
+    `description` VARCHAR(191) NOT NULL,
+    `birthdate` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `bio` VARCHAR(191) NOT NULL,
-    `arrival` DATETIME(3) NOT NULL,
+    `arrival` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `professional` BOOLEAN NOT NULL DEFAULT false,
 
     UNIQUE INDEX `MentorExtension_userId_key`(`userId`),
@@ -29,7 +31,7 @@ CREATE TABLE `MentorExtension` (
 CREATE TABLE `ImmigrantExtension` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NULL,
-    `birthdate` DATETIME(3) NULL,
+    `birthdate` DATETIME(3) NULL DEFAULT CURRENT_TIMESTAMP(3),
     `bio` VARCHAR(191) NULL,
     `userId` INTEGER NULL,
 
@@ -40,7 +42,8 @@ CREATE TABLE `ImmigrantExtension` (
 -- CreateTable
 CREATE TABLE `OrganisationExtension` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `orgaDescription` TEXT NULL,
+    `name` VARCHAR(191) NOT NULL,
+    `description` TEXT NOT NULL,
     `userId` INTEGER NULL,
 
     UNIQUE INDEX `OrganisationExtension_userId_key`(`userId`),
@@ -51,7 +54,7 @@ CREATE TABLE `OrganisationExtension` (
 CREATE TABLE `CertifiedSkillWrapper` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `mentorId` INTEGER NOT NULL,
-    `AUTHORITY` BOOLEAN NOT NULL DEFAULT false,
+    `BUREAUCRACY` BOOLEAN NOT NULL DEFAULT false,
     `LIVING` BOOLEAN NOT NULL DEFAULT false,
     `LEGAL` BOOLEAN NOT NULL DEFAULT false,
     `HEALTH` BOOLEAN NOT NULL DEFAULT false,
@@ -84,9 +87,9 @@ CREATE TABLE `Event` (
     `name` VARCHAR(191) NOT NULL,
     `temporary` BOOLEAN NOT NULL DEFAULT true,
     `description` TEXT NULL,
-    `start` DATETIME(3) NULL,
-    `end` DATETIME(3) NULL,
-    `organizerId` INTEGER NOT NULL,
+    `start` DATETIME(3) NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `end` DATETIME(3) NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `organizerId` INTEGER NULL,
     `locationId` INTEGER NULL,
 
     PRIMARY KEY (`id`)
@@ -104,7 +107,6 @@ CREATE TABLE `Location` (
     `note` VARCHAR(191) NULL,
     `coordinatesId` INTEGER NULL,
     `organisationExtensionId` INTEGER NULL,
-    `what3WordsId` INTEGER NOT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -119,18 +121,17 @@ CREATE TABLE `Coordinates` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `What3Words` (
+CREATE TABLE `Chat` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `word1` VARCHAR(191) NOT NULL,
-    `word2` VARCHAR(191) NOT NULL,
-    `word3` VARCHAR(191) NOT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `Chat` (
+CREATE TABLE `Message` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `userId` INTEGER NOT NULL,
+    `chatId` INTEGER NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -160,7 +161,7 @@ ALTER TABLE `CertifiedSkillWrapper` ADD CONSTRAINT `CertifiedSkillWrapper_mentor
 ALTER TABLE `SkillWrapper` ADD CONSTRAINT `SkillWrapper_mentorId_fkey` FOREIGN KEY (`mentorId`) REFERENCES `MentorExtension`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Event` ADD CONSTRAINT `Event_organizerId_fkey` FOREIGN KEY (`organizerId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Event` ADD CONSTRAINT `Event_organizerId_fkey` FOREIGN KEY (`organizerId`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Event` ADD CONSTRAINT `Event_locationId_fkey` FOREIGN KEY (`locationId`) REFERENCES `Location`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
@@ -172,7 +173,10 @@ ALTER TABLE `Location` ADD CONSTRAINT `Location_organisationExtensionId_fkey` FO
 ALTER TABLE `Location` ADD CONSTRAINT `Location_coordinatesId_fkey` FOREIGN KEY (`coordinatesId`) REFERENCES `Coordinates`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Location` ADD CONSTRAINT `Location_what3WordsId_fkey` FOREIGN KEY (`what3WordsId`) REFERENCES `What3Words`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Message` ADD CONSTRAINT `Message_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Message` ADD CONSTRAINT `Message_chatId_fkey` FOREIGN KEY (`chatId`) REFERENCES `Chat`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `_ChatToUser` ADD FOREIGN KEY (`A`) REFERENCES `Chat`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;

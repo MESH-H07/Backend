@@ -19,8 +19,8 @@ model User {
     organisation OrganisationExtension?
     // relations
     events       Event[]
-    Chat         Chat[]                 @relation(references: [id])
-    Message      Message[]
+    chat         Chat[]                 @relation(references: [id])
+    message      Message[]
 }
 
 enum Role {
@@ -32,10 +32,11 @@ enum Role {
 model MentorExtension {
     id              Int                    @id @default(autoincrement())
     userId          Int?                   @unique
-    name            String?
-    birthdate       DateTime // not optional because mentor need to provide information
+    name            String
+    description     String
+    birthdate       DateTime               @default(now()) // not optional because mentor need to provide information
     bio             String // not optional because mentor need to provide information
-    arrival         DateTime // since when in germany
+    arrival         DateTime               @default(now()) // since when in germany
     professional    Boolean                @default(false)
     certifiedSkills CertifiedSkillWrapper?
     skills          SkillWrapper?
@@ -46,7 +47,7 @@ model MentorExtension {
 model ImmigrantExtension {
     id        Int       @id @default(autoincrement())
     name      String?
-    birthdate DateTime?
+    birthdate DateTime? @default(now())
     bio       String?
     // relations
     User      User?     @relation(fields: [userId], references: [id])
@@ -95,11 +96,11 @@ model Event {
     name        String
     temporary   Boolean   @default(true)
     description String?   @db.Text
-    start       DateTime?
-    end         DateTime?
+    start       DateTime? @default(now())
+    end         DateTime? @default(now())
     // relations
-    organizer   User      @relation(fields: [organizerId], references: [id])
-    organizerId Int
+    organizer   User?     @relation(fields: [organizerId], references: [id])
+    organizerId Int?
     location    Location? @relation(fields: [locationId], references: [id])
     locationId  Int?
 }
@@ -130,14 +131,15 @@ model Coordinates {
 
 model Chat {
     id       Int       @id @default(autoincrement())
-    user     User[]
-    messages Message[]
+    user     User[]    @relation(references: [id])
+    messages Message[] @relation(references: [id])
 }
 
 model Message {
-    id     Int   @id @default(autoincrement())
-    user   User  @relation(fields: [userId], references: [id])
+    id     Int    @id @default(autoincrement())
+    text   String @default("test")
+    user   User   @relation(fields: [userId], references: [id])
     userId Int
-    Chat   Chat? @relation(fields: [chatId], references: [id])
+    Chat   Chat?  @relation(fields: [chatId], references: [id])
     chatId Int?
 }
